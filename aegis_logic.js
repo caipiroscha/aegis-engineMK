@@ -4,6 +4,7 @@
 const SCRIPT_PROPS = PropertiesService.getScriptProperties();
 const API_KEY = SCRIPT_PROPS.getProperty('GEMINI_API_KEY'); 
 const TELEGRAM_TOKEN = SCRIPT_PROPS.getProperty('TELEGRAM_TOKEN');
+const WEBHOOK_URL = SCRIPT_PROPS.getProperty('WEBHOOK_URL'); // URL Web App Anda nanti
 
 const NAMA_SHEET = 'Dashboard_Promosi'; 
 const TELEGRAM_CHAT_ID = '6363302207'; // ID Telegram Desainer / Tim
@@ -20,9 +21,67 @@ function onOpen() {
   SpreadsheetApp.getUi()
       .createMenu('🤖 AEGIS AI')
       .addItem('Jalankan Super Agent', 'jalankanSuperAgent')
+      .addSeparator()
+      .addItem('Pasang Penghubung Telegram (Set Webhook)', 'setWebhookBot')
       .addToUi();
 }
 
+// ------------------------------------------
+// FITUR BARU: TELEGRAM WEBHOOK (INPUT DARI CHAT)
+// ------------------------------------------
+function setWebhookBot() {
+  if(!WEBHOOK_URL || WEBHOOK_URL === "") {
+    SpreadsheetApp.getUi().alert("GAGAL: Anda belum memasukkan WEBHOOK_URL di Script Properties!");
+    return;
+  }
+  const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/setWebhook?url=${WEBHOOK_URL}`;
+  const response = UrlFetchApp.fetch(url);
+  SpreadsheetApp.getUi().alert("Status Pemasangan Webhook: " + response.getContentText());
+}
+
+// Fungsi pintu masuk dari Telegram
+function doPost(e) {
+  if(e.postData.type == "application/json") {
+    let data = JSON.parse(e.postData.contents);
+    if(data.message && data.message.text) {
+      let textUser = data.message.text;
+      let chatId = data.message.chat.id;
+      
+      // Keamanan Ekstra: Hanya merespons dari chat Anda saja
+      if(chatId.toString() !== TELEGRAM_CHAT_ID) {
+        return ContentService.createTextOutput("Akses Ditolak");
+      }
+      
+      // Abaikan perintah bawaan /start
+      if(textUser.startsWith("/start")) {
+        kirimNotifTelegram("🤖 Halo Bos! Saya AEGIS. Silakan ketikkan instruksi topik atau masalah dan saya akan langsung memprosesnya ke sistem Sheet.");
+        return ContentService.createTextOutput("OK");
+      }
+      
+      const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NAMA_SHEET);
+      if(!sheet) return ContentService.createTextOutput("Sheet err");
+      
+      // Masukkan ke Sheet
+      sheet.appendRow([textUser, "Menunggu Antrean Robot... ⏱️"]);
+      
+      // Kirim konfirmasi penerimaan awal ke chat
+      kirimNotifTelegram(`📥 *Instruksi Diterima!*\n\nTopik Anda: _"${textUser}"_ telah dimasukkan ke sistem Spreadsheet.\n\n_Agent sedang dipanaskan untuk meriset artikel & mendesain 3D... Mohon tunggu otomatisasinya selesai sekitar 2 menit._`);
+      
+      // PICU MESIN BEKERJA OTOMATIS:
+      // Karena Telegram tidak boleh dibiarkan menunggu (akan error), kita buat jam weker 1 detik untuk menyalakan Agent di background.
+      ScriptApp.newTrigger('jalankanSuperAgent')
+               .timeBased()
+               .after(1000) 
+               .create();
+               
+      return ContentService.createTextOutput("OK");
+    }
+  }
+}
+
+// ------------------------------------------
+// 2. FUNGSI UTAMA AEGIS
+// ------------------------------------------
 function kirimNotifTelegram(pesan) {
   if(!TELEGRAM_TOKEN) return;
   const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
@@ -38,7 +97,7 @@ function kirimFotoTelegram(blobGambar, judulMerek) {
   const payload = {
     chat_id: TELEGRAM_CHAT_ID,
     photo: blobGambar,
-    caption: `🎨 *[Tugas Desain Baru]*\nDesain kasar/konsep untuk: *${judulMerek}*\n_Bot telah melampirkan konsep AI otomatis yang bisa diperhalus oleh tim kreatif!_`,
+    caption: `🎨 *[Tugas Desain Selesai!]*\nKonsep Visual untuk Merek: *${judulMerek}*\n_Hasil AI telah digambar otomatis berdasarkan palet warna UI situs asli._`,
     parse_mode: "Markdown"
   };
   const options = {
@@ -49,9 +108,6 @@ function kirimFotoTelegram(blobGambar, judulMerek) {
   UrlFetchApp.fetch(url, options);
 }
 
-// ------------------------------------------
-// 2. FUNGSI UTAMA AEGIS
-// ------------------------------------------
 function jalankanSuperAgent() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(NAMA_SHEET);
   if (!sheet) return;
@@ -61,8 +117,9 @@ function jalankanSuperAgent() {
     let topik = data[i][0]; 
     let status = data[i][1]; 
     
-    if (topik !== "" && status === "") { 
-      kirimNotifTelegram(`⏳ *AEGIS AI BEKERJA*\n\n*Topik:* ${topik}\n_Generasi teks, pembuatan folder, dan menggambar aset desain visual..._`);
+    // Proses semua baris yang kosong atau ada status "Menunggu Antrean Robot..." dari Telegram
+    if (topik !== "" && (status === "" || status.includes("Menunggu"))) { 
+      // Update UI
       sheet.getRange(i + 1, 2).setValue('Menganalisis & Menggambar...');
       SpreadsheetApp.flush(); 
       
@@ -71,7 +128,7 @@ function jalankanSuperAgent() {
         
         if(hasilJSON) {
           const merek = (hasilJSON.target_merek || "").toLowerCase().trim();
-          let folderIdTarget = FOLDER_ASSETS_ID[merek];
+          let folderIdTarget = FOLDER_ASSETS_ID[merek] || FOLDER_ASSETS_ID["temukanaja"];
           let folderLinkUrl = "";
           
           if (folderIdTarget) {
@@ -84,9 +141,9 @@ function jalankanSuperAgent() {
             const promptAjaib = `IMAGE PROMPT IG (1:1):\n${hasilJSON.visual_prompts?.image_prompt_1x1}\n\n=======================\nVIDEO PROMPT TIKTOK (9:16):\n${hasilJSON.visual_prompts?.video_prompt_9x16}`;
             subFolder.createFile("Bahan_Prompt_Designer.txt", promptAjaib);
             
-            // Generate & Send Image
+            // FASE GAMBAR (IMAGEN 3)
             try {
-              let blobGambar = panggilGeminiGambar(hasilJSON.visual_prompts.image_prompt_1x1, topikPendek);
+              let blobGambar = panggilGeminiGambar(hasilJSON.visual_prompts?.image_prompt_1x1, topikPendek);
               if (blobGambar) {
                 subFolder.createFile(blobGambar); 
                 kirimFotoTelegram(blobGambar, merek.toUpperCase());
@@ -101,9 +158,10 @@ function jalankanSuperAgent() {
           sheet.getRange(i + 1, 5).setValue(`${hasilJSON.konten_artikel?.judul || ""}\n\n${hasilJSON.konten_artikel?.isi_artikel || ""}`); 
           sheet.getRange(i + 1, 6).setValue(hasilJSON.copywriting_sosmed || ""); 
           sheet.getRange(i + 1, 7).setValue(folderLinkUrl); 
-          sheet.getRange(i + 1, 2).setValue('Selesai ✅');
+          sheet.getRange(i + 1, 2).setValue('Eksekusi Agent Selesai ✅');
           
-          kirimNotifTelegram(`✅ *AEGIS SELESAI*\n\n*Topik:* ${topik}\n📝 Seluruh konten teks & Foto Desain sukses diekspor!\n📁 [Buka Folder Drive](${folderLinkUrl})`);
+          // Kirim Hasil Akhir Ke Telegram
+          kirimNotifTelegram(`✅ *MISI AEGIS SELESAI!*\n\n*Topik yang Anda berikan:* ${topik}\n\nSistem saya mendeteksi merek ideal untuk ini adalah *${merek.toUpperCase()}*.\nKonten Teks dan Folder Google Drive sudah tersedia 100%! Cek Spreedsheet sekarang!\n\n📁 [Buka Penyimpanan Lengkap Drive](${folderLinkUrl})`);
           SpreadsheetApp.flush();
           
         } else {
@@ -114,6 +172,13 @@ function jalankanSuperAgent() {
       }
     }
   }
+  
+  // Membersihkan sampah pemicu (trigger) otomatis di background agar tidak menumpuk
+  ScriptApp.getProjectTriggers().forEach(function(trigger) {
+    if(trigger.getHandlerFunction() === 'jalankanSuperAgent') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  });
 }
 
 // ------------------------------------------
