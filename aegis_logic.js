@@ -61,7 +61,7 @@ function doPost(e) {
       
       // Abaikan perintah bawaan /start
       if(textUser.startsWith("/start")) {
-        kirimNotifTelegram("🤖 Halo Bos! Saya AEGIS. Silakan ketikkan instruksi topik atau masalah dan saya akan langsung memprosesnya ke sistem Sheet.");
+        kirimNotifTelegram("🤖 <b>Halo Bos!</b> Saya AEGIS. Silakan ketikkan instruksi topik atau masalah dan saya akan langsung memprosesnya ke sistem Sheet.");
         return ContentService.createTextOutput("OK");
       }
       
@@ -72,7 +72,7 @@ function doPost(e) {
       sheet.appendRow([textUser, "Menunggu Antrean Robot... ⏱️"]);
       
       // Kirim konfirmasi penerimaan awal ke chat
-      kirimNotifTelegram(`📥 *Instruksi Diterima!*\n\nTopik Anda: _"${textUser}"_ telah dimasukkan ke sistem Spreadsheet.\n\n_Agent sedang dipanaskan untuk meriset artikel & mendesain 3D... Mohon tunggu otomatisasinya selesai sekitar 2 menit._`);
+      kirimNotifTelegram(`📥 <b>Instruksi Diterima!</b>\n\nTopik Anda: <i>"${textUser}"</i> telah dimasukkan ke sistem Spreadsheet.\n\n<i>Agent sedang dipanaskan untuk meriset artikel & mendesain 3D... Mohon tunggu otomatisasinya selesai.</i>`);
       
       // PICU MESIN BEKERJA OTOMATIS:
       // Karena Telegram tidak boleh dibiarkan menunggu (akan error), kita buat jam weker 1 detik untuk menyalakan Agent di background.
@@ -92,7 +92,7 @@ function doPost(e) {
 function kirimNotifTelegram(pesan, targetChatId = TELEGRAM_CHAT_ID) {
   if(!TELEGRAM_TOKEN) return;
   const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-  const payload = { chat_id: targetChatId, text: pesan, parse_mode: "Markdown" };
+  const payload = { chat_id: targetChatId.toString(), text: pesan, parse_mode: "HTML" };
   const options = { method: "POST", contentType: "application/json", payload: JSON.stringify(payload), muteHttpExceptions: true };
   UrlFetchApp.fetch(url, options);
 }
@@ -102,10 +102,10 @@ function kirimFotoTelegram(blobGambar, judulMerek, targetChatId = TELEGRAM_CHAT_
   const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`;
   
   const payload = {
-    chat_id: targetChatId,
+    chat_id: targetChatId.toString(),
     photo: blobGambar,
-    caption: `🎨 *[Tugas Desain Selesai!]*\nKonsep Visual untuk Merek: *${judulMerek}*\n_Hasil AI telah digambar otomatis berdasarkan palet warna UI situs asli._`,
-    parse_mode: "Markdown"
+    caption: `🎨 <b>[Tugas Desain Selesai!]</b>\nKonsep Visual untuk Merek: <b>${judulMerek}</b>\n<i>Hasil AI telah digambar otomatis berdasarkan palet warna UI situs asli.</i>`,
+    parse_mode: "HTML"
   };
   const options = {
     method: "POST",
@@ -168,7 +168,7 @@ function jalankanSuperAgent() {
           sheet.getRange(i + 1, 2).setValue('Eksekusi Agent Selesai ✅');
           
           // Kirim Hasil Akhir Ke Telegram
-          kirimNotifTelegram(`✅ *MISI AEGIS SELESAI!*\n\n*Topik yang Anda berikan:* ${topik}\n\nSistem saya mendeteksi merek ideal untuk ini adalah *${merek.toUpperCase()}*.\nKonten Teks dan Folder Google Drive sudah tersedia 100%! Cek Spreedsheet sekarang!\n\n📁 [Buka Penyimpanan Lengkap Drive](${folderLinkUrl})`);
+          kirimNotifTelegram(`✅ <b>MISI AEGIS SELESAI!</b>\n\n<b>Topik:</b> ${topik}\n\nMerek ideal: <b>${merek.toUpperCase()}</b>.\nKonten Teks & Folder selesai!\n\n📁 <a href="${folderLinkUrl}">Buka Folder Drive</a>`);
           SpreadsheetApp.flush();
           
         } else {
