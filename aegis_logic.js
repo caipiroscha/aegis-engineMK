@@ -178,6 +178,7 @@ function jalankanSuperAgent() {
                  kirimNotifTelegram(`❌ Gagal generate gambar rasio ${rasio}: ${errGambar.message}`);
               }
             });
+          }
           
           sheet.getRange(i + 1, 3).setValue(hasilJSON.target_merek || ""); 
           sheet.getRange(i + 1, 4).setValue(hasilJSON.strategi_seo_dan_niat || ""); 
