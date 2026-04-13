@@ -47,9 +47,16 @@ function doPost(e) {
       let textUser = data.message.text;
       let chatId = data.message.chat.id;
       
+      // MODE DEBUG/CEK ID: Membantu mengecek ID Chat Anda
+      if(textUser === "/cekid") {
+        kirimNotifTelegram(`🆔 ID Chat Anda saat ini adalah:\n\n${chatId}\n\nMasukkan angka ini ke TELEGRAM_CHAT_ID di baris 9 kode Anda!`, chatId);
+        return ContentService.createTextOutput("OK");
+      }
+
       // Keamanan Ekstra: Hanya merespons dari chat Anda saja
       if(chatId.toString() !== TELEGRAM_CHAT_ID) {
-        return ContentService.createTextOutput("Akses Ditolak");
+        kirimNotifTelegram(`⛔ AKSES DITOLAK!\n\nMaaf, Anda bukan otoritas sistem ini.\n\n(ID Anda: ${chatId} tidak cocok dengan sistem. Jika ini benar Anda, silakan ubah \`const TELEGRAM_CHAT_ID\` di skrip dengan angka ini!)`, chatId);
+        return ContentService.createTextOutput("OK");
       }
       
       // Abaikan perintah bawaan /start
@@ -82,20 +89,20 @@ function doPost(e) {
 // ------------------------------------------
 // 2. FUNGSI UTAMA AEGIS
 // ------------------------------------------
-function kirimNotifTelegram(pesan) {
+function kirimNotifTelegram(pesan, targetChatId = TELEGRAM_CHAT_ID) {
   if(!TELEGRAM_TOKEN) return;
   const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
-  const payload = { chat_id: TELEGRAM_CHAT_ID, text: pesan, parse_mode: "Markdown" };
+  const payload = { chat_id: targetChatId, text: pesan, parse_mode: "Markdown" };
   const options = { method: "POST", contentType: "application/json", payload: JSON.stringify(payload), muteHttpExceptions: true };
   UrlFetchApp.fetch(url, options);
 }
 
-function kirimFotoTelegram(blobGambar, judulMerek) {
+function kirimFotoTelegram(blobGambar, judulMerek, targetChatId = TELEGRAM_CHAT_ID) {
   if(!TELEGRAM_TOKEN || !blobGambar) return;
   const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`;
   
   const payload = {
-    chat_id: TELEGRAM_CHAT_ID,
+    chat_id: targetChatId,
     photo: blobGambar,
     caption: `🎨 *[Tugas Desain Selesai!]*\nKonsep Visual untuk Merek: *${judulMerek}*\n_Hasil AI telah digambar otomatis berdasarkan palet warna UI situs asli._`,
     parse_mode: "Markdown"
