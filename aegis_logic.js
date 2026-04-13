@@ -109,14 +109,14 @@ function kirimNotifTelegram(pesan, targetChatId = TELEGRAM_CHAT_ID) {
   UrlFetchApp.fetch(url, options);
 }
 
-function kirimFotoTelegram(blobGambar, judulMerek, targetChatId = TELEGRAM_CHAT_ID) {
+function kirimFotoTelegram(blobGambar, judulMerek, rasio, targetChatId = TELEGRAM_CHAT_ID) {
   if(!TELEGRAM_TOKEN || !blobGambar) return;
   const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendPhoto`;
   
   const payload = {
     chat_id: targetChatId.toString(),
     photo: blobGambar,
-    caption: `🎨 <b>[Tugas Desain Selesai!]</b>\nKonsep Visual untuk Merek: <b>${judulMerek}</b>\n<i>Hasil AI telah digambar otomatis berdasarkan palet warna UI situs asli.</i>`,
+    caption: `🎨 <b>[Tugas Desain: Ukuran ${rasio}]</b>\nKonsep Visual Merek: <b>${judulMerek}</b>`,
     parse_mode: "HTML"
   };
   const options = {
@@ -160,17 +160,24 @@ function jalankanSuperAgent() {
             const promptAjaib = `IMAGE PROMPT IG (1:1):\n${hasilJSON.visual_prompts?.image_prompt_1x1}\n\n=======================\nVIDEO PROMPT TIKTOK (9:16):\n${hasilJSON.visual_prompts?.video_prompt_9x16}`;
             subFolder.createFile("Bahan_Prompt_Designer.txt", promptAjaib);
             
-            // FASE GAMBAR (IMAGEN 3)
-            try {
-              let blobGambar = panggilGeminiGambar(hasilJSON.visual_prompts?.image_prompt_1x1, topikPendek);
-              if (blobGambar) {
-                subFolder.createFile(blobGambar); 
-                kirimFotoTelegram(blobGambar, merek.toUpperCase());
+            // FASE GAMBAR (IMAGEN 3) - LOOP 3 UKURAN SOSMED
+            const daftarRasio = ["1:1", "9:16", "16:9"];
+            
+            daftarRasio.forEach(rasio => {
+              try {
+                let namaFileBase = topikPendek.replace(/\s+/g, '_');
+                let promptUtama = hasilJSON.visual_prompts?.image_prompt_1x1;
+                
+                let blobGambar = panggilGeminiGambar(promptUtama, namaFileBase, rasio);
+                if (blobGambar) {
+                  blobGambar.setName(`Desain_${rasio.replace(":", "x")}_${namaFileBase}.jpeg`);
+                  subFolder.createFile(blobGambar); 
+                  kirimFotoTelegram(blobGambar, merek.toUpperCase(), rasio);
+                }
+              } catch (errGambar) {
+                 kirimNotifTelegram(`❌ Gagal generate gambar rasio ${rasio}: ${errGambar.message}`);
               }
-            } catch (errGambar) {
-               kirimNotifTelegram(`❌ Gagal generate gambar: ${errGambar.message}`);
-            }
-          }
+            });
           
           sheet.getRange(i + 1, 3).setValue(hasilJSON.target_merek || ""); 
           sheet.getRange(i + 1, 4).setValue(hasilJSON.strategi_seo_dan_niat || ""); 
@@ -253,11 +260,11 @@ OUTPUT JSON MURNI:
 // ------------------------------------------
 // 4. MESIN GAMBAR (IMAGEN 3)
 // ------------------------------------------
-function panggilGeminiGambar(promptInggris, namaTopik) {
+function panggilGeminiGambar(promptInggris, namaTopik, aspectRatio = "1:1") {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${API_KEY}`;
   const payload = {
     "instances": [{ "prompt": promptInggris }],
-    "parameters": { "sampleCount": 1 }
+    "parameters": { "sampleCount": 1, "aspectRatio": aspectRatio }
   };
   
   const options = {
