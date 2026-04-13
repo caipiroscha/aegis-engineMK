@@ -41,7 +41,11 @@ LANGKAH 2: PEMBUATAN KONTEN (E-E-A-T)
 - Aturan Tautan: Pastikan Call-to-Action (CTA) selalu mengarahkan ke merek yang dipilih di Langkah 1 sesuai dengan fungsinya.
 
 LANGKAH 3: DESAIN VISUAL & VIDEO
-- Buat 1 "Image Prompt" dalam Bahasa Inggris yang sangat detail untuk AI pembuat gambar (rasio 1:1 Instagram).
+- Buat 1 "Image Prompt" dalam Bahasa Inggris yang sangat detail untuk AI pembuat gambar (rasio 1:1 Instagram). WAJIB pakai gaya: "cool modern 3D, hyper-realistic, vibrant glowing lighting, cinematic". WAJIB berikan instruksi merender teks logo misal: 'with a prominent 3D glowing text that says "[NAMA MEREK]"'. Sesuaikan PALET WARNA berdasarkan merek:
+   > Pedang88: Background Hijau Tua (Dark Green) dengan teks/aksen Kuning Emas (Yellow/Gold) yang elegan.
+   > Tuna55: Background gelap dengan header Merah gelap (Dark Red) dipadukan teks/aksen Biru Elektrik (Electric Blue) dan Putih bersinar.
+   > Temukanaja: Desain UI minimalis ber-background Hijau Tua (Dark Green) pekat dengan tombol/aksen Kuning (Yellow) terang.
+   > Formpd88: Profesional UI dengan background Hijau Tua (Dark Green) dan garis/teks panduan berwarna Kuning Emas (Yellow/Gold).
 - Buat 1 "Video Prompt" dalam Bahasa Inggris untuk AI pembuat video (rasio 9:16 TikTok/Reels durasi 10 detik).
 
 ATURAN OUTPUT MUTLAK:

@@ -129,7 +129,11 @@ PENTING: Jangan pernah menggunakan awalan "http://" atau akhiran ".com". Gunakan
 Setiap kali pengguna memberikan "Topik", lakukan:
 1. Pilih SALAH SATU dari 4 merek di atas (main=pedang88/tuna55, link alternatif=temukanaja, masalah=formpd88).
 2. Buat kerangka artikel SEO dan copywriting sosmed.
-3. Buat 1 "Image Prompt" (Bahasa Inggris) SANGAT DETAIL untuk AI gambar. WAJIB pakai gaya: "cool modern 3D, hyper-realistic, vibrant glowing lighting, cinematic". WAJIB berikan instruksi merender teks logo misal: 'with a prominent 3D glowing text that says "[NAMA MEREK]"'. Sesuaikan warna (Tuna55: Merah/Oranye menyala, Pedang88: Emas/Hitam mewah, Temukanaja: Biru neon futuristik, Formpd88: Putih/Biru bersih).
+3. Buat 1 "Image Prompt" (Bahasa Inggris) SANGAT DETAIL untuk AI gambar. WAJIB pakai gaya: "cool modern 3D, hyper-realistic, vibrant glowing lighting, cinematic". WAJIB berikan instruksi merender teks logo misal: 'with a prominent 3D glowing text that says "[NAMA MEREK]"'. Sesuaikan PALET WARNA berdasarkan merek:
+   - Pedang88: Background Hijau Tua (Dark Green) dengan teks/aksen Kuning Emas (Yellow/Gold) yang elegan.
+   - Tuna55: Background gelap dengan header Merah gelap (Dark Red) dipadukan teks/aksen Biru Elektrik (Electric Blue) dan Putih bersinar.
+   - Temukanaja: Desain UI minimalis ber-background Hijau Tua (Dark Green) pekat dengan tombol/aksen Kuning (Yellow) terang.
+   - Formpd88: Profesional UI dengan background Hijau Tua (Dark Green) dan garis/teks panduan berwarna Kuning Emas (Yellow/Gold).
 4. Buat 1 "Video Prompt" (rasio 9:16).
 
 OUTPUT JSON MURNI:
