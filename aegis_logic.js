@@ -17,6 +17,18 @@ const FOLDER_ASSETS_ID = {
   "formpd88": "1oP11lElIHvhWm3c4HEKEKPwTwlEVuUqp"
 };
 
+// ==========================================
+// FUNGSI DEBUGGING KHUSUS
+// ==========================================
+function TES_TELEGRAM() {
+  const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+  const payload = { chat_id: TELEGRAM_CHAT_ID, text: "Uji Coba Tembakan Langsung dari Server Google! 🚀", parse_mode: "HTML" };
+  const options = { method: "POST", contentType: "application/json", payload: JSON.stringify(payload) }; // Tanpa mute agar error merah muncul
+  
+  const response = UrlFetchApp.fetch(url, options);
+  SpreadsheetApp.getUi().alert("Hasil Tes Telegram: " + response.getContentText());
+}
+
 function onOpen() {
   SpreadsheetApp.getUi()
       .createMenu('🤖 AEGIS AI')
