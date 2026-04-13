@@ -216,15 +216,26 @@ OUTPUT JSON MURNI:
   "visual_prompts": { "image_prompt_1x1": "...", "video_prompt_9x16": "..." }
 }`;
 
-  const payload = { "contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.7} };
+  const payload = { 
+    "contents": [{"parts": [{"text": prompt}]}], 
+    "generationConfig": {
+      "temperature": 0.7,
+      "responseMimeType": "application/json"
+    } 
+  };
   const response = UrlFetchApp.fetch(url, { "method": "post", "contentType": "application/json", "payload": JSON.stringify(payload), "muteHttpExceptions": true });
   const result = JSON.parse(response.getContentText());
   
   if (result.error) throw new Error(result.error.message);
   let textOut = result.candidates[0].content.parts[0].text.trim();
-  if (textOut.startsWith("```json")) textOut = textOut.substring(7, textOut.length - 3).trim();
-  else if (textOut.startsWith("```")) textOut = textOut.substring(3, textOut.length - 3).trim();
-  return JSON.parse(textOut);
+  
+  // Deteksi blok JSON menggunakan penelusuran kurung kurawal
+  const jsonMatch = textOut.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    return JSON.parse(jsonMatch[0]);
+  } else {
+    throw new Error("Gagal menemukan format JSON di balasan Gemini.");
+  }
 }
 
 // ------------------------------------------
