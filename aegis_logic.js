@@ -87,22 +87,16 @@ function doPost(e) {
       kirimNotifTelegram(`📥 <b>Instruksi Diterima!</b>\n\nTopik Anda: <i>"${textUser}"</i> telah dimasukkan ke sistem Spreadsheet.\n\n<i>Agent sedang dipanaskan untuk meriset artikel & mendesain 3D... Mohon tunggu otomatisasinya selesai.</i>`);
       
       // PICU MESIN BEKERJA OTOMATIS:
-      // Karena Telegram tidak boleh dibiarkan menunggu (akan error), kita buat jam weker 1 detik untuk menyalakan Agent di background.
+      // Karena Telegram tidak boleh dibiarkan menunggu, kita panggil trigger 1 detik.
       try {
         ScriptApp.newTrigger('jalankanDariTelegram')
                  .timeBased()
                  .after(1000) 
                  .create();
       } catch (triggerError) {
-        // Bersihkan sampah trigger jika limit telah tercapai, lalu coba lagi
-        ScriptApp.getProjectTriggers().forEach(function(t) {
-          if(t.getHandlerFunction() === 'jalankanDariTelegram') ScriptApp.deleteTrigger(t);
-        });
-        try {
-          ScriptApp.newTrigger('jalankanDariTelegram').timeBased().after(1000).create();
-        } catch (e2) {
-          kirimNotifTelegram("⚠️ Mesin tertahan! Silakan buka Google Sheet dan klik menu: '🤖 AEGIS AI > Jalankan Super Agent' secara manual.");
-        }
+         // JIKA ERROR (Trigger Penuh), ABAIKAN! 
+         // Karena sekarang Anda sudah punya Pemicu_AutoPilot_Berkala, 
+         // agen tetap akan mengeksekusinya dalam beberapa menit ke depan secara otomatis!
       }
                
       return ContentService.createTextOutput("OK");
