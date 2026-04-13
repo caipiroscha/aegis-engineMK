@@ -88,10 +88,22 @@ function doPost(e) {
       
       // PICU MESIN BEKERJA OTOMATIS:
       // Karena Telegram tidak boleh dibiarkan menunggu (akan error), kita buat jam weker 1 detik untuk menyalakan Agent di background.
-      ScriptApp.newTrigger('jalankanSuperAgent')
-               .timeBased()
-               .after(1000) 
-               .create();
+      try {
+        ScriptApp.newTrigger('jalankanSuperAgent')
+                 .timeBased()
+                 .after(1000) 
+                 .create();
+      } catch (triggerError) {
+        // Bersihkan sampah trigger jika limit telah tercapai, lalu coba lagi
+        ScriptApp.getProjectTriggers().forEach(function(t) {
+          if(t.getHandlerFunction() === 'jalankanSuperAgent') ScriptApp.deleteTrigger(t);
+        });
+        try {
+          ScriptApp.newTrigger('jalankanSuperAgent').timeBased().after(1000).create();
+        } catch (e2) {
+          kirimNotifTelegram("⚠️ Mesin tertahan! Silakan buka Google Sheet dan klik menu: '🤖 AEGIS AI > Jalankan Super Agent' secara manual.");
+        }
+      }
                
       return ContentService.createTextOutput("OK");
     }
