@@ -192,7 +192,7 @@ function panggilGeminiTeks(topik) {
 PENTING: Jangan pernah menggunakan awalan "http://" atau akhiran ".com". Gunakan nama berikut: pedang88, tuna55, temukanaja, formpd88.
 
 Setiap kali pengguna memberikan "Topik", lakukan:
-1. Pilih SALAH SATU dari 4 merek di atas (main=pedang88/tuna55, link alternatif=temukanaja, masalah=formpd88).
+1. ANALISIS MEREK: Jika topik secara eksplisit menyebut merek tertentu (contoh: "tuna55" atau "pedang88"), Anda WAJIB menjadikan merek tersebut sebagai opsi tunggal "target_merek"!! Jangan pernah membelot ke pedang88 jika user meminta tuna55.
 2. Buat kerangka artikel SEO dan copywriting sosmed.
 3. Buat 1 "Image Prompt" (Bahasa Inggris) SANGAT DETAIL untuk AI gambar. WAJIB pakai gaya: "cool modern 3D, hyper-realistic, vibrant glowing lighting, cinematic". WAJIB berikan instruksi merender teks logo misal: 'with a prominent 3D glowing text that says "[NAMA MEREK]"'. Sesuaikan PALET WARNA berdasarkan merek:
    - Pedang88: Background Hijau Tua (Dark Green) dengan teks/aksen Kuning Emas (Yellow/Gold) yang elegan.
